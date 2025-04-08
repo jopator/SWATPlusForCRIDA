@@ -2,7 +2,11 @@
 #==============================================================================================================
 #   Python Script 
 #   
-#   Read output from objects as time series and as geodataframes
+#   This script has multiple functions to:
+#       - Read SWAT outputs as timeseries
+#       - Read SWAT outputs referenced to objects to create maps
+#       - Read and write model files
+#       - Create new decision tables
 #
 #   Jose Teran
 #==============================================================================================================

@@ -17,6 +17,7 @@ import xarray as xr
 import rasterio
 from itertools import product
 import os
+import re
 
 #%%
 #Function definition
@@ -244,6 +245,20 @@ def NCToSwatPlus(df_list,nc_file:str,weather_var:str,varname:str,
             df.to_csv(f, index=False, header=None, sep="\t", float_format="%.2f",lineterminator='\n') 
         
         print(f"File {save_path}/{stat_name}.{weather_var} successfully saved")
+    
+def load_and_parse_csv(file):
+    df = pd.read_csv(file)
+
+    # Peek at the first date value
+    sample_date = str(df["time"].iloc[0])
+
+    # Basic regex to check if format is likely dd/mm/yyyy or dd-mm-yyyy
+    if re.match(r'\d{2}[/-]\d{2}[/-]\d{4}', sample_date):
+        df["time"] = pd.to_datetime(df["time"], dayfirst=True)
+    else:
+        df["time"] = pd.to_datetime(df["time"])
+
+    return df
 
 def CsvToSwatPlus(df_list,csv_path:str,weather_var:str,save_path:str): # This function saves the weather data with the SWAT+ format
     
@@ -278,9 +293,8 @@ def CsvToSwatPlus(df_list,csv_path:str,weather_var:str,save_path:str): # This fu
         lon = row["LONG"]
         elev = row["ELEVATION"]
 
-        df = pd.read_csv(csv_path_list[c])
-
-        df["time"] = pd.to_datetime(df["time"])
+        file_path = f"{csv_path}/{csv_path_list[c]}"
+        df = load_and_parse_csv(file_path)
 
         df["value"] = df["value"].apply(lambda x: f"{x:.2f}")
 
@@ -412,11 +426,11 @@ def CsvToSwatPlusTemp(df_list,csv_path:str,weather_var:str,save_path:str): # Thi
         lon = row["LONG"]
         elev = row["ELEVATION"]
 
-        df = pd.read_csv(csv_path_list[c])
+        file_path = f"{csv_path}/{csv_path_list[c]}"
+        df = load_and_parse_csv(file_path)
 
-        df["time"] = pd.to_datetime(df["time"])
-
-        df["value"] = df["value"].apply(lambda x: f"{x:.2f}")
+        df["tmax"] = df["tmax"].apply(lambda x: f"{x:.2f}")
+        df["tmin"] = df["tmin"].apply(lambda x: f"{x:.2f}")
 
         nbyr = df["time"].dt.year.max() - df["time"].dt.year.min() + 1
 
