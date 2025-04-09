@@ -372,8 +372,8 @@ def NCToSwatPlusTemp(df_list,nc_file_max:str,nc_file_min:str,varname_max:str,
             sample_min = ds_min.sel(lat=lat,lon=lon,method='nearest')
         
         if sample_by=="station":
-            sample_max = ds_max.sel(station=stat_name,method='nearest')
-            sample_min = ds_min.sel(station=stat_name,lon=lon,method='nearest')
+            sample_max = ds_max.sel(station=stat_name)
+            sample_min = ds_min.sel(station=stat_name)
             
 
 
