@@ -181,14 +181,15 @@ def NCToSwat2012Temp(df_list,nc_file_max:str,nc_file_min:str,varname_max:str,var
         
         
 
-def NCToSwatPlus(df_list,nc_file:str,weather_var:str,varname:str,
+def NCToSwatPlus(df_list,nc_file:str, weather_var:str,varname:str,
                  save_path:str,startdate:str = "",enddate: str="",
-                 lat_label:str="lat",lon_label:str="lon"): # This function saves the weather data with the SWAT+ format
+                 lat_label:str="lat",lon_label:str="lon",sample_by:str="coords"): # This function saves the weather data with the SWAT+ format
     
     '''
     df_list     : A datafarme with each station ID number, Name, Lat, Long, and elevation
     weather_var : The SWAT+ weather variable suffix : pcp,tmp,hmd,slr,etc.
     nc_file     : Path to NC file that will be sampled for weather data
+    sample_by   : Chooes between "coords" (Default) if the data is gridded or "station" if the data is already referenced to stations 
     varname     : The name of the variable specified on the NETCDF File (e.g., pr)
     save_path   : Path to SWAT weather folder where files will be saved
     startdate   : Format "yyyy-mm-dd" - Start date for creating weather files (optional)
@@ -220,7 +221,12 @@ def NCToSwatPlus(df_list,nc_file:str,weather_var:str,varname:str,
         lat = row["LAT"]
         lon = row["LONG"]
         elev = row["ELEVATION"]
-        sample = ds.sel(lat=lat,lon=lon,method='nearest')
+        
+        if sample_by=="coords":
+            sample = ds.sel(lat=lat,lon=lon,method='nearest')
+        
+        if sample_by=="station":
+            sample = ds.sel(station=stat_name)
         
         if startdate != "" or enddate != "":
             sample = sample.sel(time=slice(startdate, enddate))
@@ -316,13 +322,14 @@ def CsvToSwatPlus(df_list,csv_path:str,weather_var:str,save_path:str): # This fu
         
 def NCToSwatPlusTemp(df_list,nc_file_max:str,nc_file_min:str,varname_max:str,
                      varname_min:str,weather_var:str,save_path:str,startdate:str = "",enddate: str="",
-                     lat_label:str="lat",lon_label:str="lon"): # This function saves the weather data with the SWAT+ format
+                     lat_label:str="lat",lon_label:str="lon",sample_by:str="coords"): # This function saves the weather data with the SWAT+ format
     
     '''
     df_list     : A datafarme with each station ID number, Name, Lat, Long, and elevation
     weather_var : The SWAT+ weather variable suffix : pcp,tmp,hmd,slr,etc.
     nc_file_max : Path to NC file that will be sampled for weather data (Tmax)
     nc_file_min : Path to NC file that will be sampled for weather data (Tmin)
+    sample_by   : Chooes between "coords" (Default) if the data is gridded or "station" if the data is already referenced to stations
     varname_max : The name of the variable specified on the NETCDF File for Tmax (e.g., tasmax)
     varname_min : The name of the variable specified on the NETCDF File for Tmin (e.g., tasmin)
     save_path   : Path to SWAT weather folder where files will be saved
@@ -360,8 +367,15 @@ def NCToSwatPlusTemp(df_list,nc_file_max:str,nc_file_min:str,varname_max:str,
         lon = row["LONG"]
         elev = row["ELEVATION"]
 
-        sample_max = ds_max.sel(lat=lat,lon=lon,method='nearest')
-        sample_min = ds_min.sel(lat=lat,lon=lon,method='nearest')
+        if sample_by=="coords":
+            sample_max = ds_max.sel(lat=lat,lon=lon,method='nearest')
+            sample_min = ds_min.sel(lat=lat,lon=lon,method='nearest')
+        
+        if sample_by=="station":
+            sample_max = ds_max.sel(station=stat_name,method='nearest')
+            sample_min = ds_min.sel(station=stat_name,lon=lon,method='nearest')
+            
+
 
         if startdate != "" or enddate != "":
             sample_max = sample_max.sel(time=slice(startdate, enddate))
